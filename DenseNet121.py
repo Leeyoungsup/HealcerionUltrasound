@@ -82,8 +82,8 @@ class_weight = {0: class_weight_ratio[0], 1: class_weight_ratio[1]}
 input_t = K.Input(shape=(size, size, 3))
 input_tensor = layers.experimental.preprocessing.Resizing(size, size, interpolation="bilinear",
                                                           input_shape=(size, size, 3))(input_t)
-ResNet = ResNet50(include_top=True, weights='imagenet',
-                  input_tensor=input_tensor)
+ResNet = DenseNet121(include_top=True, weights='imagenet',
+                     input_tensor=input_tensor)
 model = K.models.Sequential()
 model.add(ResNet)
 model.add(tf.keras.layers.Dropout(.2, input_shape=(64,)))
