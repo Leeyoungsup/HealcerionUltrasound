@@ -23,26 +23,28 @@ size = 224
 
 train_df = pd.read_csv(
     '../../data/classificationDDH/train_aug_classification_dataset.csv')
-val_df = train_df.loc[train_df['case'].isin([2, 3])]
-train_df = train_df.loc[~train_df['case'].isin([2, 3])]
+val_df = pd.read_csv(
+    '../../data/classificationDDH/val_aug_classification_dataset.csv')
+
 train_img_list = train_df['file name'].to_list()
 train_label_list = train_df['standard class'].to_list()
 train_case_list = train_df['case'].to_list()
-img_path = '../../data/classificationDDH/aug_dataset/train/'
+train_img_path = '../../data/classificationDDH/aug_dataset/train/'
 val_img_list = val_df['file name'].to_list()
 val_label_list = val_df['standard class'].to_list()
 val_case_list = val_df['case'].to_list()
+val_img_path = '../../data/classificationDDH/aug_dataset/val/'
 
 x_train = np.zeros((len(train_img_list), size, size, 3), dtype=np.uint8)
 for i in tqdm(range(len(train_img_list))):
     x_train[i] = np.array(Image.open(
-        img_path+str(train_case_list[i])+'/'+train_img_list[i]).resize((size, size)))
+        train_img_path+str(train_case_list[i])+'/'+train_img_list[i]).resize((size, size)))
 y_train = np.array(train_label_list)
 
 x_val = np.zeros((len(val_img_list), size, size, 3), dtype=np.uint8)
 for i in tqdm(range(len(val_img_list))):
     x_val[i] = np.array(Image.open(
-        img_path+str(val_case_list[i])+'/'+val_img_list[i]).resize((size, size)))
+        val_img_path+str(val_case_list[i])+'/'+val_img_list[i]).resize((size, size)))
 y_val = np.array(val_label_list)
 
 
@@ -72,6 +74,13 @@ model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_filepath,
     save_best_only=True
 )
+
+checkpoint_filepath1 = "../../model/classification/EfficientNetV2B0_acc_checkpoints.h5"
+model_checkpoint_callback1 = tf.keras.callbacks.ModelCheckpoint(
+    monitor="val_accuracy",
+    filepath=checkpoint_filepath1,
+    save_best_only=True
+)
 # Compute class weights
 class_weight_ratio = compute_class_weight(class_weight="balanced",
                                           classes=np.unique(y_train),
@@ -96,9 +105,9 @@ model.compile(optimizer=K.optimizers.AdamW(lr=2e-5),
 histo = model.fit(
     batch_generator(x_train, y_train, 32),
     validation_data=(x_val, y_val),
-    epochs=500,
+    epochs=epochs,
     steps_per_epoch=len(x_train)//32,
-    callbacks=[model_checkpoint_callback],
+    callbacks=[model_checkpoint_callback, model_checkpoint_callback1],
     shuffle=True,
     class_weight=class_weight
 )
