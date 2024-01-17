@@ -17,7 +17,7 @@ from tqdm.auto import tqdm
 
 os.environ["CUDA_VISIBLE_DEVICES"] = '3'
 
-epochs = 50
+epochs = 200
 size = 224
 
 
